@@ -3,9 +3,9 @@ var shoe = require("mux-demux-shoe")
     , PauseStream = require("pause-stream")
     , es = require("event-stream")
 
-module.exports = shoeProxy
+module.exports = reconnecter
 
-function shoeProxy(uri) {
+function reconnecter(uri) {
     var proxyWrite = PauseStream()
         , proxyRead = through()
         , proxy = es.duplex(proxyWrite, proxyRead)
@@ -23,27 +23,33 @@ function shoeProxy(uri) {
     function createShoeStream() {
         stream = shoe(uri)
 
-        metaStreams.forEach(function (details) {
-            var proxyWrite = details.proxyWrite
-                , proxyRead = details.proxyRead
+        metaStreams.forEach(proxyMdmStream)
 
-            var mdm = stream.createStream(details.meta, details.opts)
-
-            proxyWrite.pipe(mdm).pipe(proxyRead)
-        })
-
-        stream.on("connect", function () {
-            proxyWrite.resume()
-            proxy.emit("connect")
-        })
+        stream.on("connect", onconnect)
 
         proxyWrite.pipe(stream).pipe(proxyRead)
 
-        stream.on("end", function () {
-            proxyWrite.pause()
-            proxy.emit("disconnect")
-            createShoeStream()
-        })
+        stream.on("end", onend)
+    }
+
+    function onconnect() {
+        proxyWrite.resume()
+        proxy.emit("connect")
+    }
+
+    function onend() {
+        proxyWrite.pause()
+        proxy.emit("disconnect")
+        createShoeStream()
+    }
+
+    function proxyMdmStream(details) {
+        var proxyWrite = details.proxyWrite
+            , proxyRead = details.proxyRead
+
+        var mdm = stream.createStream(details.meta, details.opts)
+
+        proxyWrite.pipe(mdm).pipe(proxyRead)
     }
 
     function createStream(meta, opts) {
