@@ -40,7 +40,6 @@ function shoeProxy(uri) {
         proxyWrite.pipe(stream).pipe(proxyRead)
 
         stream.on("end", function () {
-            console.log("stream ended")
             proxyWrite.pause()
             proxy.emit("disconnect")
             createShoeStream()
