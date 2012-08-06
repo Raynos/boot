@@ -1,6 +1,6 @@
 {
   "name": "boot",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "An automatic reconnect mux-demux-shoe",
   "keywords": [],
   "author": "Raynos <raynos2@gmail.com>",
