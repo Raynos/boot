@@ -20,8 +20,11 @@ var boot = require("../..")
 var sock = boot(function (stream) {
     // stream from MuxDemux with the meta property set
     if (stream.meta === "one") {
-        stream.on("data", console.log.bind(console))
-        stream.pipe(echoStream).pipe(stream)
+        
+        stream.on("data", console.log.bind(console, "on-server"))
+        stream.pipe(echoStream, {
+            end: false
+        }).pipe(stream)
     }
 })
 
