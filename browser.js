@@ -28,11 +28,13 @@ function reconnecter(uri) {
 
         metaStreams.forEach(proxyMdmStream)
 
-        stream.on("connect", onconnect)
+        stream.once("connect", onconnect)
 
-        proxyWrite.pipe(stream).pipe(proxyRead)
+        proxyRead.pipe(stream).pipe(proxyWrite, {
+            end: false
+        })
 
-        stream.on("end", onend)
+        stream.once("end", onend)
     }
 
     function onconnect() {
@@ -43,7 +45,8 @@ function reconnecter(uri) {
     function onend() {
         proxyWrite.pause()
         proxy.emit("disconnect")
-        createShoeStream()
+        // wait a second otherwise it spin locks
+        setTimeout(createShoeStream, 1000)
     }
 
     function proxyMdmStream(details) {
@@ -52,7 +55,11 @@ function reconnecter(uri) {
 
         var mdm = stream.createStream(details.meta, details.opts)
 
-        proxyWrite.pipe(mdm).pipe(proxyRead)
+        proxyRead.pipe(mdm).pipe(proxyWrite, {
+            end: false
+        })
+
+        stream.once("end", mdm.end.bind(mdm))
     }
 
     function createStream(meta, opts) {
@@ -71,6 +78,8 @@ function reconnecter(uri) {
             , meta: meta
             , opts: opts
         })
+
+        stream.once("end", mdm.end.bind(mdm))
 
         return proxy
     }
