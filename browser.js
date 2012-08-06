@@ -3,7 +3,6 @@ window.Buffer = require("buffer").Buffer
 
 var shoe = require("mux-demux-shoe")
     , through = require("through")
-    , PauseStream = require("pause-stream")
     , es = require("event-stream")
     , Backoff = require("backoff").fibonnaci
     , BACKOFF_OPTIONS = {
@@ -36,7 +35,9 @@ function reconnecter(uri) {
 
         stream.once("connect", onconnect)
 
-        proxyWrite.pipe(stream).pipe(proxyRead)
+        proxyWrite.pipe(stream).pipe(proxyRead, {
+            end: false
+        })
 
         stream.once("end", onend)
     }
@@ -55,29 +56,35 @@ function reconnecter(uri) {
     }
 
     function proxyMdmStream(details) {
-        var proxyWrite = details.proxyWrite
-            , proxyRead = details.proxyRead
+        var proxyMdmRead = details.proxyMdmRead
+            , proxyMdmWrite = details.proxyMdmWrite
+            , meta = details.meta
+            , opts = details.opts
 
-        var mdm = stream.createStream(details.meta, details.opts)
+        var mdm = stream.createStream(meta, opts)
 
-        proxyWrite.pipe(mdm).pipe(proxyRead)
+        proxyMdmWrite.pipe(mdm).pipe(proxyMdmRead, {
+            end: false
+        })
 
         stream.once("end", mdm.end.bind(mdm))
     }
 
     function createStream(meta, opts) {
-        var proxyWrite = through()
-            , proxyRead = through()
-            , proxy = es.duplex(proxyWrite, proxyRead)
+        var proxyMdmRead = through()
+            , proxyMdmWrite = through()
+            , proxy = es.duplex(proxyMdmWrite, proxyMdmRead)
 
         var mdm = stream.createStream(meta, opts)
 
-        proxyWrite.pipe(mdm).pipe(proxyRead)
+        proxyMdmWrite.pipe(mdm).pipe(proxyMdmRead, {
+            end: false
+        })
 
         metaStreams.push({
             proxy: proxy
-            , proxyRead: proxyRead
-            , proxyWrite: proxyWrite
+            , proxyMdmRead: proxyMdmRead
+            , proxyMdmWrite: proxyMdmWrite
             , meta: meta
             , opts: opts
         })
