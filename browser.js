@@ -5,15 +5,21 @@ var shoe = require("mux-demux-shoe")
     , through = require("through")
     , PauseStream = require("pause-stream")
     , es = require("event-stream")
+    , Backoff = require("backoff").fibonnaci
+    , BACKOFF_OPTIONS = {
+        initialDelay: 500,
+        maxDelay: 10000
+    }
 
 module.exports = reconnecter
 
 function reconnecter(uri) {
-    var proxyWrite = PauseStream()
+    var proxyWrite = through()
         , proxyRead = through()
         , proxy = es.duplex(proxyWrite, proxyRead)
         , metaStreams = []
         , stream
+        , backoff = Backoff(BACKOFF_OPTIONS)
 
     proxy.createStream = createStream
     proxy.createWriteStream = createWriteStream
@@ -30,23 +36,22 @@ function reconnecter(uri) {
 
         stream.once("connect", onconnect)
 
-        proxyRead.pipe(stream).pipe(proxyWrite, {
-            end: false
-        })
+        proxyWrite.pipe(stream).pipe(proxyRead)
 
         stream.once("end", onend)
     }
 
     function onconnect() {
-        proxyWrite.resume()
+        backoff.reset()
         proxy.emit("connect")
     }
 
     function onend() {
-        proxyWrite.pause()
         proxy.emit("disconnect")
+
         // wait a second otherwise it spin locks
-        setTimeout(createShoeStream, 1000)
+        var delay = backoff.backoffStrategy_.next()
+        setTimeout(createShoeStream, delay)
     }
 
     function proxyMdmStream(details) {
@@ -55,15 +60,13 @@ function reconnecter(uri) {
 
         var mdm = stream.createStream(details.meta, details.opts)
 
-        proxyRead.pipe(mdm).pipe(proxyWrite, {
-            end: false
-        })
+        proxyWrite.pipe(mdm).pipe(proxyRead)
 
         stream.once("end", mdm.end.bind(mdm))
     }
 
     function createStream(meta, opts) {
-        var proxyWrite = PauseStream()
+        var proxyWrite = through()
             , proxyRead = through()
             , proxy = es.duplex(proxyWrite, proxyRead)
 
