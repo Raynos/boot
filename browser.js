@@ -1,3 +1,6 @@
+// event stream -.-
+window.Buffer = require("buffer").Buffer
+
 var shoe = require("mux-demux-shoe")
     , through = require("through")
     , PauseStream = require("pause-stream")
