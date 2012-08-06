@@ -88,14 +88,14 @@ function reconnecter(uri) {
     }
 
     function createWriteStream(meta) {
-        createStream(meta, {
+        return createStream(meta, {
             writable: true
             , readable: false
         })
     }
 
     function createReadStream(meta) {
-        createStream(meta, {
+        return createStream(meta, {
             writable: false
             , readable: true
         })
