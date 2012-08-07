@@ -7,32 +7,34 @@ logic for you under the hood. You just play with streams
 
 ## Client Example
 
-    var shoe = require('../browser.js')
-        , mdm = shoe("/shoe")
+``` js
+var boot = require('boot')
+    , mdm = boot("/boot")
 
-    var one = window.one = mdm.createStream("one")
+var one = mdm.createStream("one")
 
-    one.on("data", function (data) {
-        console.log("message", data)
-    })
+one.on("data", console.log.bind(console, "client"))
 
-    one.write("hello world")
+one.write("hello world")
+```
 
 ## Server Example
 
-    var shoe = require("..")
-        , through = require("through")
-        , echoStream = through()
+``` js
+var boot = require("boot")
+    , through = require("through")
+    , echoStream = through()
 
-    var sock = shoe(function (stream) {
-        // stream from MuxDemux with the meta property set
-        if (stream.meta === "one") {
-            stream.on("data", console.log.bind(console))
-            stream.pipe(echoStream).pipe(stream)
-        }
-    })
+var sock = boot(function (stream) {
+    // stream from MuxDemux with the meta property set
+    if (stream.meta === "one") {
+        stream.on("data", console.log.bind(console, "server"))
+        stream.pipe(echoStream, { end: false }).pipe(stream)
+    }
+})
 
-    sock.install(server, "/shoe")
+sock.install(server, "/boot")
+```
 
 ## Installation
 
