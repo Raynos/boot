@@ -1,10 +1,10 @@
-// event stream -.-
+// event-stream ~_~
 window.Buffer = require("buffer").Buffer
 
 var shoe = require("mux-demux-shoe")
     , PauseStream = require("pause-stream")
     , through = require("through")
-    , es = require("event-stream")
+    , duplex = require("duplexer")
     , Backoff = require("backoff").fibonnaci
     , BACKOFF_OPTIONS = {
         initialDelay: 500,
@@ -16,7 +16,7 @@ module.exports = reconnecter
 function reconnecter(uri) {
     var proxyWrite = PauseStream()
         , proxyRead = through()
-        , proxy = es.duplex(proxyWrite, proxyRead)
+        , proxy = duplex(proxyWrite, proxyRead)
         , metaStreams = []
         , stream
         , connected = false
@@ -88,7 +88,7 @@ function reconnecter(uri) {
     function createStream(meta, opts) {
         var proxyMdmRead = through()
             , proxyMdmWrite = PauseStream()
-            , proxy = es.duplex(proxyMdmWrite, proxyMdmRead)
+            , proxy = duplex(proxyMdmWrite, proxyMdmRead)
 
         var mdm = stream.createStream(meta, opts)
 
