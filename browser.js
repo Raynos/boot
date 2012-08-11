@@ -89,6 +89,12 @@ function reconnecter(uri) {
         proxyMdmWrite.pipe(mdm).pipe(proxyMdmRead, {
             end: false
         })
+
+        mdm.once("end", function () {
+            if (!mdm.destroyed) {
+                proxyMdmRead.emit("end")
+            }
+        })
     }
 
     function createStream(meta, opts) {
@@ -104,6 +110,12 @@ function reconnecter(uri) {
 
         proxyMdmWrite.pipe(mdm).pipe(proxyMdmRead, {
             end: false
+        })
+
+        mdm.once("end", function () {
+            if (!mdm.destroyed) {
+                proxyMdmRead.emit("end")
+            }
         })
 
         var index = metaStreams.push({
