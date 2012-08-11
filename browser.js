@@ -45,10 +45,20 @@ function reconnecter(uri) {
             end: false
         })
 
-        stream.once("end", onend)
+        // if the stream ends and is not connected repoll
+        stream.on("end", repoll)
+    }
+
+    function repoll() {
+        // wait a second otherwise it spin locks
+        var delay = backoff.backoffStrategy_.next()
+        setTimeout(createShoeStream, delay)
     }
 
     function onconnect() {
+        stream.removeListener("end", repoll)
+        stream.once("end", handleDisconnect)
+
         backoff.reset()
 
         proxyWrite.resume()
@@ -58,16 +68,14 @@ function reconnecter(uri) {
         connected = true
     }
 
-    function onend() {
+    function handleDisconnect() {
         proxyWrite.pause()
         metaStreams.forEach(pause)
 
         proxy.emit("disconnect")
         connected = false
 
-        // wait a second otherwise it spin locks
-        var delay = backoff.backoffStrategy_.next()
-        setTimeout(createShoeStream, delay)
+        repoll()
     }
 
     function proxyMdmStream(details) {
@@ -81,8 +89,6 @@ function reconnecter(uri) {
         proxyMdmWrite.pipe(mdm).pipe(proxyMdmRead, {
             end: false
         })
-
-        stream.once("end", mdm.end.bind(mdm))
     }
 
     function createStream(meta, opts) {
