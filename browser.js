@@ -100,7 +100,7 @@ function reconnecter(uri) {
             end: false
         })
 
-        metaStreams.push({
+        var index = metaStreams.push({
             proxy: proxy
             , proxyMdmRead: proxyMdmRead
             , proxyMdmWrite: proxyMdmWrite
@@ -108,7 +108,17 @@ function reconnecter(uri) {
             , opts: opts
         })
 
-        stream.once("end", mdm.end.bind(mdm))
+        mdm.on("end", removeFromCache)
+        stream.once("end", cleanup)
+
+        function cleanup() {
+            mdm.removeListener("end", removeFromCache)
+            mdm.end()
+        }
+
+        function removeFromCache() {
+            metaStreams.splice(index, 1)
+        }
 
         return proxy
     }
