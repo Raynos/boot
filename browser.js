@@ -108,11 +108,10 @@ function reconnecter(uri) {
             , opts: opts
         })
 
-        mdm.on("end", removeFromCache)
+        proxy.on("end", removeFromCache)
         stream.once("end", cleanup)
 
         function cleanup() {
-            mdm.removeListener("end", removeFromCache)
             mdm.end()
         }
 
