@@ -109,11 +109,6 @@ function reconnecter(uri) {
         })
 
         proxyMdmWrite.on("end", removeFromCache)
-        stream.once("end", cleanup)
-
-        function cleanup() {
-            mdm.end()
-        }
 
         function removeFromCache() {
             metaStreams.splice(index - 1, 1)
