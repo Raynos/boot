@@ -19,6 +19,6 @@ function install(server, options, uri, callback) {
     }
 
     var sock = shoe()
-    sock.listen(server, uri)
+    sock.install(server, uri)
     return sock
 }
