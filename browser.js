@@ -14,7 +14,7 @@ var shoe = require("mux-demux-shoe")
 module.exports = reconnecter
 
 function reconnecter(uri) {
-    var proxyWrite = PauseStream()
+    var proxyWrite = PauseStream().pause()
         , proxyRead = through()
         , proxy = duplex(proxyWrite, proxyRead)
         , metaStreams = []
@@ -22,9 +22,7 @@ function reconnecter(uri) {
         , connected = false
         , backoff = Backoff(BACKOFF_OPTIONS)
 
-    if (!connected) {
-        proxyWrite.pause()
-    }
+    uri = uri || "/boot"
 
     proxy.createStream = createStream
     proxy.createWriteStream = createWriteStream
