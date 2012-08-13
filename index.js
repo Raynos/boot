@@ -18,7 +18,7 @@ function install(server, options, uri, callback) {
         uri = "/boot"
     }
 
-    var sock = shoe()
+    var sock = shoe(options, callback)
     sock.install(server, uri)
     return sock
 }
