@@ -125,7 +125,9 @@ function reconnecter(uri, options) {
         function onend() {
             if (!mdm.destroyed) {
                 // it ended cleanly so end the proxy
-                proxyMdmRead.emit("end")
+                proxyMdmRead.end()
+                proxyMdmWrite.end()
+                proxy.end()
             } else {
                 // ended means there is a temporary disconnect from the server
                 proxy.emit("ended")
@@ -150,7 +152,9 @@ function reconnecter(uri, options) {
 
         var index = metaStreams.push(details)
 
-        proxyMdmWrite.once("end", removeFromCache)
+        proxyMdmWrite.on("end", removeFromCache)
+
+        proxy.purge = removeFromCache
 
         return proxy
 
