@@ -38,6 +38,7 @@ function reconnecter(uri, options) {
     proxy.createStream = createStream
     proxy.createWriteStream = createWriteStream
     proxy.createReadStream = createReadStream
+    proxy.getStream = getStream
 
     // Open the initial connection
     createShoeStream()
@@ -175,6 +176,10 @@ function reconnecter(uri, options) {
             writable: false
             , readable: true
         })
+    }
+
+    function getStream() {
+        return stream
     }
 }
 
